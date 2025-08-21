@@ -1,0 +1,17 @@
+Flask
+Flask-SQLAlchemy
+SQLAlchemy
+Werkzeug
+gunicorn
+Flask-Login
+Flask-WTF
+WTForms
+requests
+python-dateutil
+croniter
+pytest
+pytest-flask
+black
+flake8
+Sphinx
+sphinx-rtd-theme
