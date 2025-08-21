@@ -19,7 +19,7 @@ import traceback
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///c2.db'
 # Configure upload folder for screenshots
-app.config['UPLOAD_FOLDER'] = r'D:\Proton Drive\Sem 4\Capstone\c2server (3)\c2server\uploads'
+app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'uploads')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Debug: Print current working directory and uploads path
