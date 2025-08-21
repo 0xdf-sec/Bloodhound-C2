@@ -3,9 +3,6 @@
 instance/
 c2.db
 
-# Generated content
-payloads/generated/
-uploads/
 
 # Python cache
 __pycache__/
