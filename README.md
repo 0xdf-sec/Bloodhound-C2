@@ -221,18 +221,12 @@
 ```bash
 
 # Clone the repository
-
-git clone <repository-url>
-
-cd c2server
-
-  
+git clone https://github.com/0xdf-sec/Bloodhound-C2
+cd Bloodhound-C2
 
 # Install dependencies
 
 pip install -r requirements.txt
-
-  
 
 # Initialize the database
 # Start the server
