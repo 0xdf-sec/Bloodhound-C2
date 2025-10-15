@@ -1,4 +1,4 @@
-# Bloodhound C2 - Command & Control Server Framework
+# Bloodhound C2 - Command & Control Framework
 
   
 ![Bloodhound C2](https://github.com/user-attachments/assets/21be3b7d-5861-46ba-a7d7-394d4832b687)
