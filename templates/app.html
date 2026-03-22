@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloodhound C2 - Command & Control Server</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Bloodhound C2</h1>
+            <div class="subtitle">Command & Control Server</div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="/" class="nav-item active" data-nav="dashboard">
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard
+            </a>
+            <a href="/agents" class="nav-item" data-nav="agents">
+                <i class="fas fa-server"></i>
+                Agents
+            </a>
+            <a href="/payloads" class="nav-item" data-nav="payloads">
+                <i class="fas fa-rocket"></i>
+                Payloads
+            </a>
+            <a href="/screenshots" class="nav-item" data-nav="screenshots">
+                <i class="fas fa-camera"></i>
+                <span>Screenshots</span>
+            </a>
+            <a href="/obfuscator" class="nav-item" data-nav="obfuscator">
+                <i class="fas fa-code"></i>
+                <span>Command Obfuscator</span>
+            </a>
+            <a href="/scheduler" class="nav-item" data-nav="scheduler">
+                <i class="fas fa-clock"></i>
+                Task Scheduler
+            </a>
+            <a href="/geolocation" class="nav-item" data-nav="geolocation">
+                <i class="fas fa-map-marker-alt"></i>
+                Geolocation
+            </a>
+            <a href="/files" class="nav-item">
+                <i class="fas fa-file-upload"></i>
+                File Management
+            </a>
+            
+            <!-- Theme Toggle Button -->
+            <div class="theme-toggle-container" style="padding: 20px; text-align: center; border-top: 1px solid var(--border-color);">
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+                    <i class="fas fa-sun" id="themeIcon"></i>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Content will be dynamically loaded here -->
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/script.js"></script>
+    
+    <script>
+        // Theme Management
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            setTheme(savedTheme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(newTheme);
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            
+            const themeIcon = document.getElementById('themeIcon');
+            if (themeIcon) {
+                if (theme === 'light') {
+                    themeIcon.className = 'fas fa-moon';
+                    themeIcon.style.color = '#333';
+                } else {
+                    themeIcon.className = 'fas fa-sun';
+                    themeIcon.style.color = '#ffd700';
+                }
+            }
+        }
+
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // Initialize theme when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initTheme();
+        });
+    </script>
+</body>
+</html>

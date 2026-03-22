@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler - Bloodhound C2</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Bloodhound C2</h1>
+            <div class="subtitle">Command & Control Server</div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="/" class="nav-item">
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard
+            </a>
+            <a href="/agents" class="nav-item">
+                <i class="fas fa-server"></i>
+                Agents
+            </a>
+            <a href="/payloads" class="nav-item">
+                <i class="fas fa-rocket"></i>
+                Payloads
+            </a>
+            <a href="/screenshots" class="nav-item">
+                <i class="fas fa-camera"></i>
+                Screenshots
+            </a>
+            <a href="/obfuscator" class="nav-item">
+                <i class="fas fa-code"></i>
+                <span>Command Obfuscator</span>
+            </a>
+            <a href="/scheduler" class="nav-item active">
+                <i class="fas fa-clock"></i>
+                Task Scheduler
+            </a>
+            <a href="/geolocation" class="nav-item">
+                <i class="fas fa-map-marker-alt"></i>
+                Geolocation
+            </a>
+            <a href="/files" class="nav-item">
+                <i class="fas fa-file-upload"></i>
+                File Management
+            </a>
+            
+            <!-- Theme Toggle Button -->
+            <div class="theme-toggle-container" style="padding: 20px; text-align: center; border-top: 1px solid var(--border-color);">
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+                    <i class="fas fa-sun" id="themeIcon"></i>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <div class="page-header fade-in">
+            <h2>Task Scheduler</h2>
+            <p class="description">Schedule commands to run on agents at specific times</p>
+        </div>
+
+        <div class="grid grid-2">
+            <div class="card fade-in">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Schedule New Command</div>
+                        <div class="card-subtitle">Create a scheduled task</div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <form id="scheduleForm">
+                        <div class="form-group">
+                            <label for="targetAgent">Target Agent:</label>
+                            <select id="targetAgent" class="form-control" required>
+                                <option value="">Select an agent...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="command">Command:</label>
+                            <textarea id="command" placeholder="Enter PowerShell command..." rows="4" class="form-control" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="scheduleType">Schedule Type:</label>
+                            <select id="scheduleType" class="form-control" onchange="toggleScheduleOptions()" required>
+                                <option value="once">Run Once</option>
+                                <option value="hourly">Every Hour</option>
+                                <option value="daily">Daily</option>
+                                <option value="custom">Custom Cron</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" id="scheduleTimeGroup">
+                            <label for="scheduleTime">Schedule Time:</label>
+                            <input type="datetime-local" id="scheduleTime" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group" id="cronGroup" style="display: none;">
+                            <label for="cronExpression">Cron Expression:</label>
+                            <input type="text" id="cronExpression" placeholder="*/5 * * * *" class="form-control">
+                            <small class="form-help">Format: minute hour day month weekday</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="obfuscationTechnique">Obfuscation:</label>
+                            <select id="obfuscationTechnique" class="form-control">
+                                <option value="none">No Obfuscation</option>
+                                <option value="base64">Base64 Encoding</option>
+                                <option value="string_manipulation">String Manipulation</option>
+                                <option value="unicode_escape">Unicode Escape</option>
+                                <option value="variable_substitution">Variable Substitution</option>
+                                <option value="reverse_string">Reverse String</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-clock"></i> Schedule Command
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card fade-in">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Scheduled Commands</div>
+                        <div class="card-subtitle">Active scheduled tasks</div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="loadScheduledCommands()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+                <div class="card-content">
+                    <div id="scheduledCommandsList">
+                        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <i class="fas fa-clock" style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;"></i>
+                            <p>Loading scheduled commands...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle schedule options based on type
+        function toggleScheduleOptions() {
+            const scheduleType = document.getElementById('scheduleType').value;
+            const scheduleTimeGroup = document.getElementById('scheduleTimeGroup');
+            const cronGroup = document.getElementById('cronGroup');
+            
+            if (scheduleType === 'custom') {
+                scheduleTimeGroup.style.display = 'none';
+                cronGroup.style.display = 'block';
+            } else {
+                scheduleTimeGroup.style.display = 'block';
+                cronGroup.style.display = 'none';
+            }
+        }
+
+        // Load scheduled commands
+        function loadScheduledCommands() {
+            fetch('/api/scheduled-commands')
+                .then(response => response.json())
+                .then(commands => {
+                    const container = document.getElementById('scheduledCommandsList');
+                    
+                    if (commands.length === 0) {
+                        container.innerHTML = `
+                            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                                <i class="fas fa-clock" style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;"></i>
+                                <p>No scheduled commands</p>
+                                <p style="font-size: 14px; margin-top: 10px;">Schedule your first command above</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    container.innerHTML = commands.map(cmd => `
+                        <div class="scheduled-command-item">
+                            <div class="command-header">
+                                <div class="command-hostname">${cmd.hostname}</div>
+                                <div class="command-schedule">${cmd.schedule_type}</div>
+                            </div>
+                            <div class="command-content">
+                                <div class="command-text">${cmd.command}</div>
+                                <div class="command-obfuscated">${cmd.obfuscated_command}</div>
+                            </div>
+                            <div class="command-footer">
+                                <div class="command-time">Next: ${cmd.next_run ? new Date(cmd.next_run).toLocaleString() : 'N/A'}</div>
+                                <button class="btn btn-danger btn-sm" onclick="deleteScheduledCommand(${cmd.id})">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                })
+                .catch(error => {
+                    console.error('Error loading scheduled commands:', error);
+                    document.getElementById('scheduledCommandsList').innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;"></i>
+                            <p>Failed to load scheduled commands</p>
+                        </div>
+                    `;
+                });
+        }
+
+        // Delete scheduled command
+        function deleteScheduledCommand(cmdId) {
+            if (confirm('Are you sure you want to delete this scheduled command?')) {
+                fetch(`/api/scheduled-commands/${cmdId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        loadScheduledCommands(); // Refresh the list
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting command:', error);
+                    alert('Failed to delete scheduled command');
+                });
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('scheduleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                hostname: document.getElementById('targetAgent').value,
+                command: document.getElementById('command').value,
+                schedule_type: document.getElementById('scheduleType').value,
+                schedule_time: document.getElementById('scheduleTime').value,
+                cron_expression: document.getElementById('cronExpression').value,
+                obfuscation_technique: document.getElementById('obfuscationTechnique').value
+            };
+            
+            if (!formData.hostname || !formData.command) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            fetch('/api/schedule-command', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || 'Failed to schedule command');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.message) {
+                    alert('Command scheduled successfully!');
+                    document.getElementById('scheduleForm').reset();
+                    loadScheduledCommands(); // Refresh the list
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to schedule command'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error: ' + error.message);
+            });
+        });
+
+        // Set default time to current time + 1 hour
+        function setDefaultTime() {
+            const now = new Date();
+            now.setHours(now.getHours() + 1);
+            const timeString = now.toISOString().slice(0, 16);
+            document.getElementById('scheduleTime').value = timeString;
+        }
+
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        // Highlight current page in navigation
+        function highlightCurrentPage() {
+            const currentPath = window.location.pathname;
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === currentPath) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // Load agents for the dropdown
+        function loadAgents() {
+            fetch('/api/agents')
+                .then(response => response.json())
+                .then(agents => {
+                    const select = document.getElementById('targetAgent');
+                    select.innerHTML = '<option value="">Select an agent...</option>';
+                    
+                    agents.forEach(agent => {
+                        const option = document.createElement('option');
+                        option.value = agent.hostname;
+                        option.textContent = `${agent.hostname} (${agent.ip}) - ${agent.status}`;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading agents:', error);
+                    const select = document.getElementById('targetAgent');
+                    select.innerHTML = '<option value="">Failed to load agents</option>';
+                });
+        }
+
+        // Theme Management
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            setTheme(savedTheme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(newTheme);
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            
+            const themeIcon = document.getElementById('themeIcon');
+            if (theme === 'light') {
+                themeIcon.className = 'fas fa-moon';
+                themeIcon.style.color = '#333';
+            } else {
+                themeIcon.className = 'fas fa-sun';
+                themeIcon.style.color = '#ffd700';
+            }
+        }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initTheme(); // Initialize theme first
+            loadAgents();
+            loadScheduledCommands();
+            setDefaultTime();
+            highlightCurrentPage(); // Call the new function
+        });
+    </script>
+</body>
+</html>

