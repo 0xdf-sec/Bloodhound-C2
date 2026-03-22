@@ -1,5 +1,8 @@
 # Bloodhound C2 - Command & Control Server Framework
 
+![Bloodhound C2](https://github.com/user-attachments/assets/21be3b7d-5861-46ba-a7d7-394d4832b687)
+
+
 ## **IMPORTANT DISCLAIMER**
 
 **This project is developed and shared for EDUCATIONAL PURPOSES ONLY. It is designed to help cybersecurity professionals, researchers, and students understand how Command & Control (C2) frameworks operate in order to better defend against them.**
